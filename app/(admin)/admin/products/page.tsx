@@ -33,8 +33,9 @@ export default async function AdminProducts() {
                     {p.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </td>
-                <td className="p-4">
+                <td className="p-4 flex gap-4">
                   <Link href={`/admin/products/${p.id}`} className="text-primary hover:underline">Edit</Link>
+                  <Link href={`/admin/products/${p.id}/packages`} className="text-gray-400 hover:text-white">Packages</Link>
                 </td>
               </tr>
             ))}
