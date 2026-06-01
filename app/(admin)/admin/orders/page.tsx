@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 export default async function AdminOrders() {
   const supabase = createClient()
@@ -6,6 +8,14 @@ export default async function AdminOrders() {
     .from('orders')
     .select('*, profiles(email), products(name)')
     .order('created_at', { ascending: false })
+
+  async function fulfillOrder(formData: FormData) {
+    'use server'
+    const order_id = formData.get('order_id')
+    const s = createClient()
+    await s.from('orders').update({ status: 'COMPLETED', completed_at: new Date().toISOString() }).eq('id', order_id)
+    redirect('/admin/orders')
+  }
 
   return (
     <div>
@@ -36,7 +46,10 @@ export default async function AdminOrders() {
                 </td>
                 <td className="p-4">
                   {o.status === 'PENDING' && (
-                    <button className="text-primary text-sm hover:underline">Fulfill</button>
+                    <form action={fulfillOrder}>
+                      <input type="hidden" name="order_id" value={o.id} />
+                      <button className="text-primary text-sm hover:underline">Fulfill Manually</button>
+                    </form>
                   )}
                 </td>
               </tr>

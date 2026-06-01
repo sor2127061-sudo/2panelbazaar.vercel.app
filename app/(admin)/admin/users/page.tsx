@@ -1,8 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
 export default async function AdminUsers() {
   const supabase = createClient()
   const { data: users } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
+
+  async function toggleBan(formData: FormData) {
+    'use server'
+    const user_id = formData.get('user_id')
+    const current_ban = formData.get('current_ban') === 'true'
+    const s = createClient()
+    await s.from('profiles').update({ is_banned: !current_ban }).eq('id', user_id)
+    redirect('/admin/users')
+  }
 
   return (
     <div>
@@ -16,6 +26,7 @@ export default async function AdminUsers() {
               <th className="p-4">Wallet</th>
               <th className="p-4">Role</th>
               <th className="p-4">Status</th>
+              <th className="p-4">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
@@ -27,6 +38,17 @@ export default async function AdminUsers() {
                 <td className="p-4">{u.is_admin ? 'Admin' : 'User'}</td>
                 <td className="p-4">
                   {u.is_banned ? <span className="text-red-500">Banned</span> : 'Active'}
+                </td>
+                <td className="p-4">
+                  {!u.is_admin && (
+                    <form action={toggleBan}>
+                      <input type="hidden" name="user_id" value={u.id} />
+                      <input type="hidden" name="current_ban" value={u.is_banned ? 'true' : 'false'} />
+                      <button className="text-sm hover:underline text-red-400">
+                        {u.is_banned ? 'Unban' : 'Ban'}
+                      </button>
+                    </form>
+                  )}
                 </td>
               </tr>
             ))}
